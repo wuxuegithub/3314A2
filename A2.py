@@ -165,6 +165,7 @@ def main():
                                          args.train_label_path)
     # For your implementation
     model = LeNet5()
+    # loss = model.Forward_Propagation(batch_image, batch_label, mode=’train’)
 
     # set lr for each epoch
     lr_global_list = np.array([5e-2] * 2 + [2e-2] * 3 + [1e-2] * 3 + [5e-3] * 4 + [1e-3] * 8)
