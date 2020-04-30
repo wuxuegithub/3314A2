@@ -35,6 +35,30 @@ class LeNet5(object):
         return feature_map.reshape(10,1)
 
 
+    # convolution layer
+    def convolution(image, no_filter, filter_size=5, s=1):
+
+        filt = numpy.random.randn(no_filter, filter_size, filter_size) / 25
+        depth, input_dim, _ = image.shape  # image dimensions
+        out_dim = int((input_dim - filter_size) / s) + 1  # calculate output dimensions
+        #print(out_dim)
+        convout = numpy.zeros((no_filter, out_dim, out_dim))
+
+        # convolve each filter over the image
+        for f in range(no_filter):
+            height = 0
+            # move filter vertically across the image
+            while height + filter_size <= input_dim:
+                width = 0
+                # move filter horizontally across the image
+                while width + filter_size <= input_dim:
+                    # perform the convolution operation and add the bias
+                    convout[f, height, width] = numpy.sum(filt[f] * image[:, height:height+filter_size, width:width+filter_size])
+                    width += s
+                height += s
+
+        return convout
+
 
 
 
