@@ -36,9 +36,8 @@ class LeNet5(object):
 
 
     # convolution layer
-    def convolution(input_image, no_filter, filter_size=5, s=1):
+    def convolution(input_image, filt, no_filter, filter_size=5, s=1):
 
-        filt = numpy.random.randn(no_filter, filter_size, filter_size) / 25
         depth, input_dim, _ = input_image.shape  # image dimensions
         out_dim = int((input_dim - filter_size) / s) + 1  # calculate output dimensions
         #print(out_dim)
@@ -69,10 +68,15 @@ class LeNet5(object):
     def __init__(self):
         # YOUR IMPLEMETATION
         #define our layers
+
         raise NotImplementedError
 
     def Forward_Propagation(self, input_image, input_label, mode):
         # YOUR IMPLEMETATION
+        filtC1 = numpy.random.randn(6, 5, 5) / 25
+        filtC3 = numpy.random.randn(16, 5, 5) / 25
+        filtC5 = numpy.random.randn(120, 5, 5) / 25
+
         raise NotImplementedError
 
     def Back_Propagation(self, lr_global):
