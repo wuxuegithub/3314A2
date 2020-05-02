@@ -36,10 +36,10 @@ class LeNet5(object):
 
 
     # convolution layer
-    def convolution(input_image, filt, no_filter, filter_size=5, s=1):
+    def convolution(input_image, filt, no_filter, filter_size=5, stride=1):
 
         depth, input_dim, _ = input_image.shape  # image dimensions
-        out_dim = int((input_dim - filter_size) / s) + 1  # calculate output dimensions
+        out_dim = int((input_dim - filter_size) / stride) + 1  # calculate output dimensions
         #print(out_dim)
         convout = numpy.zeros((no_filter, out_dim, out_dim))
 
@@ -53,8 +53,8 @@ class LeNet5(object):
                 while width + filter_size <= input_dim:
                     # perform the convolution operation and add the bias
                     convout[f, height, width] = numpy.sum(filt[f] * input_image[:, height:height+filter_size, width:width+filter_size])
-                    width += s
-                height += s
+                    width += stride
+                height += stride
 
         return convout
 
