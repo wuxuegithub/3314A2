@@ -6,21 +6,22 @@ class LeNet5(object):
     def __init__(self):
         # YOUR IMPLEMETATION
         #define our layers
-        self.w1 = numpy.random.randn(6, 5, 5) / 25
-        self.w2 = numpy.random.randn(28, 28) / 784
-        self.w3 = numpy.random.randn(16,5, 5) / 25
-        self.w4 = numpy.random.randn(10, 10) / 100
-        self.w5 = numpy.random.randn(120, 5, 5) / 25
-        self.w6 = numpy.random.randn(1, 1)
-        self.w7 = numpy.random.randn(1, 1)
+        #I guess there is no weight for maxpooling layer!
+        self.w1 = numpy.random.randn(5, 5, 1, 6) / 25
+        #self.w2 = numpy.random.randn(14, 14) / 196
+        self.w3 = numpy.random.randn(5, 5, 6, 16) / 25
+        #self.w4 = numpy.random.randn(5, 5) / 25
+        self.w5 = numpy.random.randn(5, 5, 16, 120) / 25
+        self.w6 = numpy.random.randn(1,1,120,84)
+        self.w7 = numpy.random.randn(1,1,84, 10)
 
-        self.b1 = numpy.zeros((self.w1.shape[0], 1))
-        self.b2 = numpy.zeros((self.w2.shape[0], 1))
-        self.b3 = numpy.zeros((self.w3.shape[0], 1))
-        self.b4 = numpy.zeros((self.w4.shape[0], 1))
-        self.b5 = numpy.zeros((self.w5.shape[0], 1))
-        self.b6 = numpy.zeros((self.w6.shape[0], 1))
-        self.b7 = numpy.zeros((self.w7.shape[0], 1))
+        self.b1 = numpy.zeros((1,1,1,self.w1.shape[-1]))
+        #self.b2 = numpy.zeros((1,1,1,self.w2.shape[-1]))
+        self.b3 = numpy.zeros((1,1,1,self.w3.shape[-1]))
+        #self.b4 = numpy.zeros((1,1,1,self.w4.shape[-1]))
+        self.b5 = numpy.zeros((1,1,1,self.w5.shape[-1]))
+        self.b6 = numpy.zeros((1,1,1,self.w6.shape[-1]))
+        self.b7 = numpy.zeros((1,1,1,self.w7.shape[-1]))
 
         print("Init done")
         #raise NotImplementedError
@@ -33,13 +34,13 @@ class LeNet5(object):
         # Layer S2 followed by ReLu activation
         self.a2 = maxpooling(self.a1)
         self.a2 = relu(self.a2)
-        self.a2 = numpy.dot(self.a2, self.w2) + self.b2
+        #self.a2 = numpy.dot(self.a2, self.w2) + self.b2
         # Layer C3
         self.a3 = convolution(self.a2, self.w3, 16, self.b3)
         # Layer S4 followed by ReLu activation
         self.a4 = maxpooling(self.a3)
         self.a4 = relu(self.a4)
-        self.a4 = numpy.dot(self.a4, self.w4) + self.b4
+        #self.a4 = numpy.dot(self.a4, self.w4) + self.b4
         # Layer C5 followed by ReLu activation
         self.a5 = convolution(self.a4, self.w5, 120, self.b5)
         self.a5 = relu(self.a5)
