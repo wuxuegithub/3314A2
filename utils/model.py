@@ -134,12 +134,14 @@ def fc7(feature_map):
 
 # convolution layer
 def convolution(input_image, filt, no_filter, bias, filter_size=5, stride=1):
-
-    #print(input_image.shape)
-    batch_size, input_dim, _, depth = input_image.shape  # image dimensions
+    # print(input_image.shape)
+    if len(input_image.shape) == 4:
+        batch, input_dim, _, depth = input_image.shape  # image dimensions
+    else:
+        input_dim, _, depth = input_image.shape  # image dimensions
     out_dim = int((input_dim - filter_size) / stride) + 1  # calculate output dimensions
-    convout = numpy.zeros((no_filter, out_dim, out_dim))
-    #print(convout.shape)
+    convout = numpy.zeros((out_dim, out_dim, no_filter))
+    print(convout.shape)
 
     # convolve each filter over the image
     for f in range(no_filter):
@@ -150,7 +152,9 @@ def convolution(input_image, filt, no_filter, bias, filter_size=5, stride=1):
             # move filter horizontally across the image
             while width + filter_size <= input_dim:
                 # perform the convolution operation and add the bias
-                convout[f, height, width] = numpy.sum(filt[f] * input_image[:, height:height+filter_size, width:width+filter_size]) + bias[f]
+                convout[height, width, f] = numpy.sum(
+                    filt[f] * input_image[:, height:height + filter_size, width:width + filter_size]) #+ bias[f]
                 width += stride
             height += stride
+    print(convout)
     return convout
