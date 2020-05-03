@@ -134,31 +134,24 @@ def fc7(feature_map):
 
 # convolution layer
 def convolution(input_image, filt, no_filter, bias, filter_size=5, stride=1):
-    #print(input_image.shape)
-    if len(input_image.shape) == 4:
-        batch, input_dim, _, depth = input_image.shape  # image dimensions
-    else:
-        input_dim, _, depth = input_image.shape  # image dimensions
+    print("conv input_image.shape: ", input_image.shape)
+    batch, input_dim, _, depth = input_image.shape  # image dimensions
 
     out_dim = int((input_dim - filter_size) / stride) + 1  # calculate output dimensions
-    convout = numpy.zeros((out_dim, out_dim, no_filter))
-    #print(convout.shape)
+    convout = numpy.zeros((batch,out_dim, out_dim, no_filter))
+
+    print("filt.shape: ", filt.shape)
     # convolve each filter over the image
-    for f in range(no_filter):
-        height = 0
-        # move filter vertically across the image
-        while height + filter_size <= input_dim:
-            width = 0
-            # move filter horizontally across the image
-            while width + filter_size <= input_dim:
-                # perform the convolution operation and add the bias
-                if len(input_image.shape) == 4:
-                    convout[height, width, f] = numpy.sum(
-                        filt[f] * input_image[:, height:height + filter_size, width:width + filter_size,:]) + bias[f]
-                else:
-                    convout[height, width, f] = numpy.sum(
-                        filt * input_image[height:height + filter_size, width:width + filter_size, :]) + bias[f]
-                width += stride
-            height += stride
-    #print(convout)
+    #for f in range(no_filter):
+    height = 0
+    # move filter vertically across the image
+    while height + filter_size <= input_dim:
+        width = 0
+        # move filter horizontally across the image
+        while width + filter_size <= input_dim:
+            # perform the convolution operation and add the bias
+            convout[:, height ,width, :] = numpy.tensordot((input_image[:, height:height + filter_size, width:width + filter_size,:]), filt, axes=([1,2,3],[0,1,2])) + bias
+            width += stride
+        height += stride
+    print("convout.shape: ", convout.shape)
     return convout
