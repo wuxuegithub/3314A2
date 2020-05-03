@@ -8,7 +8,7 @@ class LeNet5(object):
         #define our layers
         self.w1 = numpy.random.randn(6, 5, 5) / 25
         self.w2 = numpy.random.randn(28, 28) / 784
-        self.w3 = numpy.random.randn(16, 5, 5) / 25
+        self.w3 = numpy.random.randn(16,5, 5) / 25
         self.w4 = numpy.random.randn(10, 10) / 100
         self.w5 = numpy.random.randn(120, 5, 5) / 25
         self.w6 = numpy.random.randn(1, 1)
@@ -134,15 +134,15 @@ def fc7(feature_map):
 
 # convolution layer
 def convolution(input_image, filt, no_filter, bias, filter_size=5, stride=1):
-    # print(input_image.shape)
+    #print(input_image.shape)
     if len(input_image.shape) == 4:
         batch, input_dim, _, depth = input_image.shape  # image dimensions
     else:
         input_dim, _, depth = input_image.shape  # image dimensions
+
     out_dim = int((input_dim - filter_size) / stride) + 1  # calculate output dimensions
     convout = numpy.zeros((out_dim, out_dim, no_filter))
-    print(convout.shape)
-
+    #print(convout.shape)
     # convolve each filter over the image
     for f in range(no_filter):
         height = 0
@@ -152,9 +152,13 @@ def convolution(input_image, filt, no_filter, bias, filter_size=5, stride=1):
             # move filter horizontally across the image
             while width + filter_size <= input_dim:
                 # perform the convolution operation and add the bias
-                convout[height, width, f] = numpy.sum(
-                    filt[f] * input_image[:, height:height + filter_size, width:width + filter_size]) #+ bias[f]
+                if len(input_image.shape) == 4:
+                    convout[height, width, f] = numpy.sum(
+                        filt[f] * input_image[:, height:height + filter_size, width:width + filter_size,:]) + bias[f]
+                else:
+                    convout[height, width, f] = numpy.sum(
+                        filt * input_image[height:height + filter_size, width:width + filter_size, :]) + bias[f]
                 width += stride
             height += stride
-    print(convout)
+    #print(convout)
     return convout
