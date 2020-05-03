@@ -50,6 +50,29 @@ class LeNet5(object):
         return feature_map.reshape(10,1)
 
 
+    # convolution layer
+    def convolution(input_image, filt, no_filter, bias, filter_size=5, stride=1):
+
+        depth, input_dim, _ = input_image.shape  # image dimensions
+        out_dim = int((input_dim - filter_size) / stride) + 1  # calculate output dimensions
+        #print(out_dim)
+        convout = numpy.zeros((no_filter, out_dim, out_dim))
+
+        # convolve each filter over the image
+        for f in range(no_filter):
+            height = 0
+            # move filter vertically across the image
+            while height + filter_size <= input_dim:
+                width = 0
+                # move filter horizontally across the image
+                while width + filter_size <= input_dim:
+                    # perform the convolution operation and add the bias
+                    convout[f, height, width] = numpy.sum(filt[f] * input_image[:, height:height+filter_size, width:width+filter_size]) + bias[width]
+                    width += stride
+                height += stride
+
+        return convout
+
 
 
 
@@ -60,10 +83,15 @@ class LeNet5(object):
     def __init__(self):
         # YOUR IMPLEMETATION
         #define our layers
+
         raise NotImplementedError
 
     def Forward_Propagation(self, input_image, input_label, mode):
         # YOUR IMPLEMETATION
+        filtC1 = numpy.random.randn(6, 5, 5) / 25
+        filtC3 = numpy.random.randn(16, 5, 5) / 25
+        filtC5 = numpy.random.randn(120, 5, 5) / 25
+
         raise NotImplementedError
 
     def Back_Propagation(self, lr_global):
