@@ -4,6 +4,21 @@ import numpy
 
 class LeNet5(object):
 
+    def softmax(self, Z):
+        expZ = numpy.np.exp(Z - numpy.np.max(Z))
+        return expZ / expZ.sum(axis=0, keepdims=True)
+
+    def crossentropy(pred,real):
+        res=pred-real
+        return res
+
+    def relu_deri(self,Z):
+        if (Z>0):
+            return 1
+        else:
+            return 0
+
+
     def maxpooling (feature_map,size=2,stride=2):
         #declare an empty array for storing the output
         pool=numpy.zeros(numpy.unit16((feature_map.shape[0]-size+1)/stride),
@@ -53,4 +68,25 @@ class LeNet5(object):
 
     def Back_Propagation(self, lr_global):
         # YOUR IMPLEMETATION
-        raise NotImplementedError
+        a7_delta= self.crossentropy(self.a7,self.y)
+        z6_delta=numpy.dot(a7_delta,self.w7)
+        a6_delta=z6_delta*self.relu_deri(self,self.a6)
+        z5_delta = numpy.dot(a6_delta, self.w6)
+        a5_delta = z5_delta * self.relu_deri(self, self.a5)
+        z4_delta = numpy.dot(a5_delta, self.w5)
+        a4_delta = z4_delta * self.relu_deri(self, self.a4)
+        z3_delta = numpy.dot(a4_delta, self.w4)
+        a3_delta = z3_delta * self.relu_deri(self, self.a3)
+        z2_delta = numpy.dot(a3_delta, self.w3)
+        a2_delta = z2_delta * self.relu_deri(self, self.a2)
+        z1_delta = numpy.dot(a2_delta, self.w2)
+        a1_delta = z1_delta * self.relu_deri(self, self.x)
+
+        self.w7 -= lr_global* numpy.dot(self.a6, a7_delta)
+        self.w6 -= lr_global * numpy.dot(self.a5, a6_delta)
+        self.w5 -= lr_global* numpy.dot(self.a4, a5_delta)
+        self.w4 -= lr_global * numpy.dot(self.a3, a4_delta)
+        self.w3 -= lr_global * numpy.dot(self.a2, a3_delta)
+        self.w2 -= lr_global * numpy.dot(self.a1, a2_delta)
+        self.w1 -= lr_global* numpy.dot(self.x, a1_delta)
+
