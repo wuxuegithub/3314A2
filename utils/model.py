@@ -11,16 +11,16 @@ class LeNet5(object):
         self.w3 = numpy.random.randn(5, 5, 6, 16) / 25
         #self.w4 = numpy.random.randn(5, 5) / 25
         self.w5 = numpy.random.randn(5, 5, 16, 120) / 25
-        self.w6 = numpy.random.randn(1,1,120,84)
-        self.w7 = numpy.random.randn(1,1,84, 10)
+        self.w6 = numpy.random.randn(120,84)
+        self.w7 = numpy.random.randn(84, 10)
 
         self.b1 = numpy.zeros((1,1,1,self.w1.shape[-1]))
         #self.b2 = numpy.zeros((1,1,1,self.w2.shape[-1]))
         self.b3 = numpy.zeros((1,1,1,self.w3.shape[-1]))
         #self.b4 = numpy.zeros((1,1,1,self.w4.shape[-1]))
         self.b5 = numpy.zeros((1,1,1,self.w5.shape[-1]))
-        self.b6 = numpy.zeros((1,1,1,self.w6.shape[-1]))
-        self.b7 = numpy.zeros((1,1,1,self.w7.shape[-1]))
+        self.b6 = numpy.zeros((1,self.w6.shape[-1]))
+        self.b7 = numpy.zeros((1,self.w7.shape[-1]))
 
         print("Init done")
         #raise NotImplementedError
@@ -43,13 +43,14 @@ class LeNet5(object):
         # Layer C5 followed by ReLu activation
         self.a5 = convolution(self.a4, self.w5, 120, self.b5)
         self.a5 = relu(self.a5)
+
+        self.a5 = self.a5[:, 0, 0, :]
+
         # Layer F6  followed by ReLu activation
-        self.a6 = fc6(self.a5)
+        self.a6 = fc(self.a5, self.w6, self.b6)
         self.a6 = relu(self.a6)
-        self.a6 = numpy.dot(self.a6, self.w6) + self.b6
         # Layer F7
-        self.a7 = fc7(self.a6)
-        self.a7 = numpy.dot(self.a7, self.w7) + self.b7
+        self.a7 = fc(self.a6, self.w7, self.b7)
 
         n_samples = input_label.shape[0]
         logp = - numpy.log(self.a7[numpy.arange(n_samples), input_label.argmax(axis=1)])
@@ -106,32 +107,36 @@ def maxpooling(feature_map,size=2,stride=2):
     # pool=numpy.zeros(((feature_map.shape[0]-size+1)/stride),
     #                  ((feature_map.shape[1]-size+1)/stride),
     #                  (feature_map.shape[-1]))
-    pool = numpy.zeros(((14,14,6)))
-    for map_num in range(feature_map.shape[-1]):
+    #pool = numpy.zeros(((14,14,6)))
+
+    batch, _, in_dim, depth = feature_map.shape
+    out_dim = int((in_dim - size) / stride) + 1
+
+    pool = numpy.zeros((batch, out_dim, out_dim, depth))
+
+    for map_num in range(depth):
         r2=0
-        for r in numpy.arange(0,feature_map.shape[0]-size-1,stride):
+        for r in numpy.arange(0,out_dim-size-1,stride):
             c2=0
-            for c in numpy.arange(0,feature_map.shape[1]-size-1,stride):
-                pool[r2,c2,map_num]=numpy.max([feature_map[r:r+size,c:c+size,map_num]])
+            for c in numpy.arange(0,out_dim-size-1,stride):
+                pool[:,r2,c2,map_num]=numpy.max([feature_map[:,r:r+size,c:c+size,map_num]])
                 c2=c2+1
         r2=r2+1
+    print("pool.shape:", pool.shape)
     return pool
 
 def relu(feature_map):
     reluout=numpy.zeros(feature_map.shape)
     for map_num in range(feature_map.shape[-1]):
-        for r in numpy.arange(0,feature_map.shape[0]):
-            for c in numpy.arange(0,feature_map.shape[1]):
-                reluout[r,c,map_num]=numpy.max([feature_map[r,c,map_num]])
+        for r in numpy.arange(0,feature_map.shape[1]):
+            for c in numpy.arange(0,feature_map.shape[2]):
+                reluout[:,r,c,map_num]=numpy.max([feature_map[:,r,c,map_num]],0)
+    print("reluout.shape:", reluout.shape)
     return reluout
 
-
-def fc6(feature_map):
-    return feature_map.reshape(84,1)
-
-def fc7(feature_map):
-    return feature_map.reshape(10,1)
-
+def fc(feature_map, weight, bias):
+    print("fc layer feature_map.shape:", feature_map.shape)
+    return numpy.dot(feature_map, weight) + bias
 
 # convolution layer
 def convolution(input_image, filt, no_filter, bias, filter_size=5, stride=1):
@@ -141,7 +146,6 @@ def convolution(input_image, filt, no_filter, bias, filter_size=5, stride=1):
     out_dim = int((input_dim - filter_size) / stride) + 1  # calculate output dimensions
     convout = numpy.zeros((batch,out_dim, out_dim, no_filter))
 
-    print("filt.shape: ", filt.shape)
     # convolve each filter over the image
     #for f in range(no_filter):
     height = 0
