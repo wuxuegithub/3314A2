@@ -73,6 +73,7 @@ class LeNet5(object):
 
     def Back_Propagation(self, lr_global):
         # YOUR IMPLEMETATION
+        print("input_labels: ",self.y)
         a7_delta= self.crossentropy(self.a7,self.y)
         z6_delta=numpy.dot(a7_delta,self.w7)
         a6_delta=z6_delta*self.relu_deri(self,self.a6)
