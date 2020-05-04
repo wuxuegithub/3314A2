@@ -27,7 +27,6 @@ class LeNet5(object):
 
     def Forward_Propagation(self, input_image, input_label, mode):
         # YOUR IMPLEMETATION
-
         # Layer C1
         self.a1 = convolution(input_image, self.w1, 6, self.b1)
         # Layer S2 followed by ReLu activation
@@ -52,15 +51,23 @@ class LeNet5(object):
         # Layer F7
         self.a7 = fc(self.a6, self.w7, self.b7)
 
-        n_samples = input_label.shape[0]
-        logp = - numpy.log(self.a7[numpy.arange(n_samples), input_label.argmax(axis=1)])
-        loss = numpy.sum(logp) / n_samples
-        print(loss)
+        #print("Before softmax: ", self.a7[:3])
+        self.out = self.softmax(self.a7)
+
+        self.y = input_label
+        n_samples = input_label.shape[0] #256
+        #print("After softmax: ", self.out[:3])
+        class_pred = numpy.argmax(self.out, axis=1)
 
         if mode == "train":
+            logp = - numpy.log(self.a7[numpy.arange(n_samples), input_label.argmax(axis=0)])
+            loss = numpy.sum(logp) / n_samples
+            print("loss: ", loss)
             return loss
         else:
-            return self.a7
+            error01 = numpy.sum(input_label != class_pred)
+            print("error01: ", error01)
+            return error01, class_pred
 
         #raise NotImplementedError
 
@@ -88,19 +95,19 @@ class LeNet5(object):
         self.w2 -= lr_global * numpy.dot(self.a1, a2_delta)
         self.w1 -= lr_global* numpy.dot(self.x, a1_delta)
 
-def softmax(self, Z):
-    expZ = numpy.np.exp(Z - numpy.np.max(Z))
-    return expZ / expZ.sum(axis=0, keepdims=True)
+    def softmax(self, Z):
+        expZ = numpy.exp(Z - numpy.max(Z))
+        return expZ / expZ.sum(axis=1, keepdims=True)
 
-def crossentropy(pred,real):
-    res = pred - real
-    return res
+    def crossentropy(pred,real):
+        res = pred - real
+        return res
 
-def relu_deri(self,Z):
-    if (Z>0):
-        return 1
-    else:
-        return 0
+    def relu_deri(self,Z):
+        if (Z>0):
+            return 1
+        else:
+            return 0
 
 def maxpooling(feature_map,size=2,stride=2):
     #declare an empty array for storing the output
@@ -126,11 +133,12 @@ def maxpooling(feature_map,size=2,stride=2):
     return pool
 
 def relu(feature_map):
-    reluout=numpy.zeros(feature_map.shape)
-    for map_num in range(feature_map.shape[-1]):
-        for r in numpy.arange(0,feature_map.shape[1]):
-            for c in numpy.arange(0,feature_map.shape[2]):
-                reluout[:,r,c,map_num]=numpy.max([feature_map[:,r,c,map_num]],0)
+    #reluout=numpy.zeros(feature_map.shape)
+    #for map_num in range(feature_map.shape[-1]):
+    #    for r in numpy.arange(0,feature_map.shape[1]):
+    #        for c in numpy.arange(0,feature_map.shape[2]):
+    #            reluout[:,r,c,map_num]=numpy.max([feature_map[:,r,c,map_num]],0)
+    reluout = numpy.where(feature_map>0, feature_map, 0)
     print("reluout.shape:", reluout.shape)
     return reluout
 
@@ -140,7 +148,7 @@ def fc(feature_map, weight, bias):
 
 # convolution layer
 def convolution(input_image, filt, no_filter, bias, filter_size=5, stride=1):
-    print("conv input_image.shape: ", input_image.shape)
+    #print("conv input_image.shape: ", input_image)
     batch, input_dim, _, depth = input_image.shape  # image dimensions
 
     out_dim = int((input_dim - filter_size) / stride) + 1  # calculate output dimensions
@@ -158,5 +166,5 @@ def convolution(input_image, filt, no_filter, bias, filter_size=5, stride=1):
             convout[:, height ,width, :] = numpy.tensordot((input_image[:, height:height + filter_size, width:width + filter_size,:]), filt, axes=([1,2,3],[0,1,2])) + bias
             width += stride
         height += stride
-    print("convout.shape: ", convout.shape)
+    #print("convout.shape: ", convout.shape)
     return convout
