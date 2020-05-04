@@ -60,7 +60,7 @@ class LeNet5(object):
         class_pred = numpy.argmax(self.out, axis=1)
 
         if mode == "train":
-            logp = - numpy.log(self.a7[numpy.arange(n_samples), input_label.argmax(axis=0)])
+            logp = - numpy.log(numpy.argmax(self.a7, axis=1))
             loss = numpy.sum(logp) / n_samples
             print("loss: ", loss)
             return loss
