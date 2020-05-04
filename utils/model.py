@@ -33,6 +33,7 @@ class LeNet5(object):
                     c2=c2+1
             r2=r2+1
         return pool
+
     def relu(feature_map):
         reluout=numpy.zero(feature_map.shape)
         for map_num in feature_map.shape[-1]:
@@ -72,12 +73,6 @@ class LeNet5(object):
                 height += stride
 
         return convout
-
-
-
-
-
-
 
 
     def __init__(self):
