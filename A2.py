@@ -126,6 +126,8 @@ def train(model, train_data, test_data, num_epoch, lr_global_list, batch_size):
         print('Training: ')
         for i in tqdm(range(len(mini_batches))):
             batch_image, batch_label = mini_batches[i]
+            # print("batch label",batch_label)
+            # print(batch_label.shape)
             # For your implementation
             loss = model.Forward_Propagation(batch_image, batch_label, 'train')
             cost += loss
