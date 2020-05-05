@@ -38,7 +38,6 @@ class LeNet5(object):
         self.a2 = relu(self.z2)
         # print("a2", self.a2.shape)
         # print("a2", self.a5.shape)
-        #self.a2 = numpy.dot(self.a2, self.w2) + self.b2
         # Layer C3
         self.z3 = convolution(self.a2, self.w3, 16, self.b3)
         # print("z3", self.z3.shape)
@@ -46,19 +45,13 @@ class LeNet5(object):
         self.z4,self.cachez4 = maxpooling(self.z3)
         self.a4 = relu(self.z4)
         # print("a4", self.a4.shape)
-        #self.a4 = numpy.dot(self.a4, self.w4) + self.b4
         # Layer C5 followed by ReLu activation
         self.z5 = convolution(self.a4, self.w5, 120, self.b5)
         self.a5 = relu(self.z5)
-        # self.a5.resize(120,1,1)
-        # print("a5", self.a5.shape)
-
-
-        self.a5 = self.a5[:, 0, 0, :]
-
-
+        self.a5_flatten = self.a5[:, 0, 0, :]
+        print("a5_flatten", self.a5_flatten.shape)
         # Layer F6  followed by ReLu activation
-        self.z6 = fc(self.a5, self.w6, self.b6)
+        self.z6 = fc(self.a5_flatten, self.w6, self.b6)
         # self.a6.resize(84,1,1)
         self.a6 = relu(self.z6)
         # print("a6",self.a6.shape)
@@ -66,21 +59,18 @@ class LeNet5(object):
         self.z7 = fc(self.a6, self.w7, self.b7)
         # print("a7",self.z7.shape)
 
-        #print("Before softmax: ", self.a7[:3])
+        print("Before softmax: ", self.z7.shape)
         self.a7 = self.softmax( self.z7)
-        # print("output",self.a7.shape)
-        # print(self.a7)
-
-
+        print("After softmax", self.a7.shape)
 
         self.y = input_label
         # self.y.resize((256, 10))
-       # print(self.y)
+        # print(self.y)
         n_samples = input_label.shape[0] #256
         #print("After softmax: ", self.out[:3])
         self.class_pred = numpy.argmax( self.a7, axis=1)
-        print(self.class_pred)
-      #  print("predicted label",self.class_pred)
+        #print(self.class_pred)
+        #print("predicted label",self.class_pred)
 
         if mode == "train":
             logp = - numpy.log(numpy.argmax(self.a7, axis=1))
