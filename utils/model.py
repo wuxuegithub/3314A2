@@ -111,27 +111,31 @@ class LeNet5(object):
         # print("self.w6",z6_delta)
         # print(z6_delta)
         a6_delta=z6_delta*self.relu_deri(self.a6)
+        # print("a6_delta",a6_delta.shape)
         z5_delta = numpy.dot(a6_delta, self.w6.T)
         a5_delta = z5_delta * self.relu_deri( self.a5)
         print("w5_delta", self.w5.shape)
 
-        # w5=self.w5.reshape(400,120)
-        a5_delta.resize(120,16,5,5)
-        z4_delta = numpy.dot(a5_delta, self.w5.T)
+        w5=self.w5
+        w5=w5.reshape(5,5,120,16)
+        # a5_delta.resize(120,16,5,5)
+        z4_delta = numpy.dot(a5_delta, w5)
 
-        z4_delta.resize(256,5,5,16)
+        # z4_delta.resize(256,5,5,16)
         a4_delta = z4_delta * self.relu_deri( self.a4)
-        a4_delta.resize(256,10,10,16)
-        a3_delta = a4_delta * maxpool_deri(self.z4,self.cachez4)
-        # print("a3_delta",a3_delta.shape)
+        # a4_delta.resize(256,10,10,16)
+        # a3_delta = a4_delta * maxpool_deri(a4_delta,self.cachez4)
+        a3_delta = maxpool_deri(a4_delta, self.cachez4)
+        print("a3_delta",a3_delta.shape)
         # a3_delta.resize(1,5,5,6)
 
-        w3 = self.w3.reshape(150, 16)
+        w3 = self.w3
+        w3 = w3.reshape(150,16)
         z2_delta = numpy.dot(a3_delta, w3.T)
         z2_delta.resize(256,14,14,6)
         a2_delta = z2_delta * self.relu_deri(self.a2)
-        a2_delta.resize(256,28,28,6)
-        a1_delta = a2_delta * maxpool_deri(self.z2,self.cachez2)
+        a1_delta =  maxpool_deri(a2_delta,self.cachez2)
+
 
         self.w7 -= lr_global* numpy.dot(self.a6.T,a7_delta )
         self.b7 -=lr_global * numpy.sum(a7_delta, axis=0, keepdims=True)
@@ -139,28 +143,28 @@ class LeNet5(object):
         self.b6 -=lr_global * numpy.sum(a6_delta, axis=0, keepdims=True)
         print("a5_shape",a5_delta.shape)
 
-        # w5_temp=(numpy.dot(self.a4.T, a5_delta)).reshape(400,120)
-        # w5_old=self.w5.reshape(400,120)
-        a5_delta
-        self.w5 =self.w5- lr_global* numpy.dot(self.a4.T, a5_delta)
+        w5_temp=numpy.dot(self.a4.T, a5_delta)
+        w5_temp.resize(5,5,16,120)
+
+        self.w5 =self.w5- lr_global*w5_temp
         self.b5 -= lr_global * numpy.sum(a5_delta, axis=0, keepdims=True)
 
-        a2=self.a2.reshape(256,1176)
-        a3_temp=a3_delta.reshape(256,1600)
-        w3_temp = (numpy.dot(a2.T, a3_temp))
+        a3_delta.resize(1,1,1,16)
+        self.b3 -= lr_global * numpy.sum(a3_delta, axis=0, keepdims=True)
+        a3_delta.resize(6,14,256,14)
+        w3_temp = numpy.dot(self.a2.T, a3_delta)
         w3_temp.resize(5,5,6,16)
+
 
         self.w3 =self.w3- lr_global * w3_temp
 
-
-        # self.b3 -= lr_global* numpy.sum(a3_delta, axis=0, keepdims=True)
-
-        x = self.x.reshape(256, 1024)
-        a1_temp = a1_delta.reshape(256, 4704)
-        w1_temp = (numpy.dot(x.T, a1_temp))
+        a1_delta.resize(1,1,1,6)
+        self.b1 -= lr_global * numpy.sum(a1_delta, axis=0, keepdims=True)
+        a1_delta.resize(28,28,256,6)
+        w1_temp = numpy.dot(self.x.T, a1_delta)
         w1_temp.resize(5,5,1,6)
-        self.w1 -= lr_global* w1_temp
-        # self.b1 -= lr_global * numpy.sum(a1_delta, axis=0, keepdims=True)
+        self.w1 = self.w1 - lr_global * w1_temp
+
 
 
     def softmax(self, Z):
