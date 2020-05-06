@@ -49,7 +49,6 @@ class LeNet5(object):
         self.z5 = convolution(self.a4, self.w5, 120, self.b5)
         self.a5 = relu(self.z5)
         self.a5_flatten = self.a5[:, 0, 0, :]
-        print("a5_flatten", self.a5_flatten.shape)
         # Layer F6  followed by ReLu activation
         self.z6 = fc(self.a5_flatten, self.w6, self.b6)
         # self.a6.resize(84,1,1)
@@ -89,40 +88,59 @@ class LeNet5(object):
         print("input_labels: ",self.y.shape)
         print(type(self.y))
 
+        weighted_y = self.w7[self.y,:]
+        print("weighted_label: " ,weighted_y.shape)
 
-        a7_delta= self.crossentropy(self.class_pred,self.y)
-        a7_delta.resize(256,10)
-        print(a7_delta)
-        # a7_delta.resize(1,84)
-        # print("self.w7",a7_delta)
-        # print(a7_delta.shape)
+        a7_delta= self.crossentropy(self.a7, weighted_y)
+        print("a7_delta.shape after crossentropy: ", a7_delta.shape)
+
         z6_delta=numpy.dot(a7_delta,self.w7.T)
+        print("z6_delta.shape: ", z6_delta.shape)
 
-        # print("self.w6",z6_delta)
-        # print(z6_delta)
-        a6_delta=z6_delta*self.relu_deri(self.a6)
-        # print("a6_delta",a6_delta.shape)
+        a6_delta=z6_delta * self.relu_deri(self.a6)
+        print("a6_delta.shape: ",a6_delta.shape)
+
         z5_delta = numpy.dot(a6_delta, self.w6.T)
-        a5_delta = z5_delta * self.relu_deri( self.a5)
-        print("w5_delta", self.w5.shape)
+        print("z5_delta.shape: ", z5_delta.shape)
 
-        w5=self.w5
-        w5=w5.reshape(5,5,120,16)
-        # a5_delta.resize(120,16,5,5)
-        z4_delta = numpy.dot(a5_delta, w5)
+        z5_delta = z5_delta[:, numpy.newaxis, numpy.newaxis, :]
+        print("After reverse flatten z5_delta.shape: ", z5_delta.shape)
+        a5_delta = z5_delta * self.relu_deri(self.a5)
+        print("a5_delta.shape: ", a5_delta.shape)
 
-        # z4_delta.resize(256,5,5,16)
-        a4_delta = z4_delta * self.relu_deri( self.a4)
-        # a4_delta.resize(256,10,10,16)
-        # a3_delta = a4_delta * maxpool_deri(a4_delta,self.cachez4)
+        z4_delta = z5_delta
+        print("w5.shape: ", self.w5.shape)
+        for h in range(5):
+            for w in range(5):
+                z4_delta[:, h:h+5, w:w+5, :] += numpy.transpose(numpy.dot(self.w5, a5_delta[:,h,w,:].T), (3,0,1,2))
+        print("z4_delta.shape: ", z4_delta.shape)
+
+        #print("w5.shape: ", self.w5.shape)
+        #for h in range(1):
+        #    for w in range(1):
+        #        z4_delta = numpy.dot(self.w5, a5_delta[:, h, w, :].T)
+        #print("z4_delta.shape: ", z4_delta.shape)
+
+        z4_delta = numpy.transpose(z4_delta, (3,0,1,2))
+        print("After transpose z4_delta.shape: ", z4_delta.shape)
+
+        a4_delta = z4_delta * self.relu_deri(self.a4)
+        print("a4_delta.shape: ", a4_delta.shape)
+
         a3_delta = maxpool_deri(a4_delta, self.cachez4)
-        print("a3_delta",a3_delta.shape)
-        # a3_delta.resize(1,5,5,6)
+        print("a3_delta.shape: ",a3_delta.shape)
 
-        w3 = self.w3
-        w3 = w3.reshape(150,16)
-        z2_delta = numpy.dot(a3_delta, w3.T)
-        z2_delta.resize(256,14,14,6)
+        print("w3.shape: ", self.w3.shape)
+        for h in range(10):
+            for w in range(10):
+                z2_delta = numpy.dot(self.w3, a3_delta[:,h,w,:].T)
+        #z2_delta = numpy.dot(a3_delta, self.w3.T)
+        print("z2_delta.shape: ", z2_delta.shape)
+
+        z2_delta = numpy.transpose(z2_delta, (3, 0, 1, 2))
+        print("After transpose z2_delta.shape: ", z2_delta.shape)
+
+        print("a2: ", self.a2.shape)
         a2_delta = z2_delta * self.relu_deri(self.a2)
         a1_delta =  maxpool_deri(a2_delta,self.cachez2)
 
@@ -194,13 +212,13 @@ def maxpooling(feature_map,size=2,stride=2):
     cache=feature_map
     # print("pool.shape:", pool.shape)
     return pool,cache
+
 def maxpool_deri(feature_map,cache):
     x = cache
     batch, H, W, depth = x.shape
     batch,HH,WW,depth=feature_map.shape
     # print("x.shape",x.shape)
     # print("feature.shape", feature_map.shape)
-
 
     dx=None
     dx=numpy.zeros(x.shape)
@@ -214,8 +232,6 @@ def maxpool_deri(feature_map,cache):
                     dx[n,r*2:r*2+2,c*2:c*2+2,depth]=mask*feature_map[n,r,c,depth]
 
     return dx
-
-
 
 def relu(feature_map):
     #reluout=numpy.zeros(feature_map.shape)
