@@ -109,17 +109,12 @@ class LeNet5(object):
         print("a5_delta.shape: ", a5_delta.shape)
 
         z4_delta = z5_delta
-        print("w5.shape: ", self.w5.shape)
-        for h in range(5):
-            for w in range(5):
-                z4_delta[:, h:h+5, w:w+5, :] += numpy.transpose(numpy.dot(self.w5, a5_delta[:,h,w,:].T), (3,0,1,2))
-        print("z4_delta.shape: ", z4_delta.shape)
 
-        #print("w5.shape: ", self.w5.shape)
-        #for h in range(1):
-        #    for w in range(1):
-        #        z4_delta = numpy.dot(self.w5, a5_delta[:, h, w, :].T)
-        #print("z4_delta.shape: ", z4_delta.shape)
+        print("w5.shape: ", self.w5.shape)
+        for h in range(1):
+            for w in range(1):
+                z4_delta = numpy.dot(self.w5, a5_delta[:, h, w, :].T)
+        print("z4_delta.shape: ", z4_delta.shape)
 
         z4_delta = numpy.transpose(z4_delta, (3,0,1,2))
         print("After transpose z4_delta.shape: ", z4_delta.shape)
@@ -130,15 +125,115 @@ class LeNet5(object):
         a3_delta = maxpool_deri(a4_delta, self.cachez4)
         print("a3_delta.shape: ",a3_delta.shape)
 
+        z4_delta = z5_delta
+        # YOUR IMPLEMETATION
+        print("input_labels: ",self.y.shape)
+        print(type(self.y))
+
+        weighted_y = self.w7[self.y,:]
+        print("weighted_label: " ,weighted_y.shape)
+
+        a7_delta= self.crossentropy(self.a7, weighted_y)
+        print("a7_delta.shape after crossentropy: ", a7_delta.shape)
+
+        z6_delta=numpy.dot(a7_delta,self.w7.T)
+        print("z6_delta.shape: ", z6_delta.shape)
+
+        a6_delta=z6_delta * self.relu_deri(self.a6)
+        print("a6_delta.shape: ",a6_delta.shape)
+
+        z5_delta = numpy.dot(a6_delta, self.w6.T)
+        print("z5_delta.shape: ", z5_delta.shape)
+
+        z5_delta = z5_delta[:, numpy.newaxis, numpy.newaxis, :]
+        print("After reverse flatten z5_delta.shape: ", z5_delta.shape)
+        a5_delta = z5_delta * self.relu_deri(self.a5)
+        print("a5_delta.shape: ", a5_delta.shape)
+
+        z4_delta = z5_delta
+
+        print("w5.shape: ", self.w5.shape)
+        for h in range(1):
+            for w in range(1):
+                z4_delta = numpy.dot(self.w5, a5_delta[:, h, w, :].T)
+        print("z4_delta.shape: ", z4_delta.shape)
+
+        z4_delta = numpy.transpose(z4_delta, (3,0,1,2))
+        print("After transpose z4_delta.shape: ", z4_delta.shape)
+
+        a4_delta = z4_delta * self.relu_deri(self.a4)
+        print("a4_delta.shape: ", a4_delta.shape)
+
+        a3_delta = maxpool_deri(a4_delta, self.cachez4)
+        print("a3_delta.shape: ",a3_delta.shape)
+
+        z2_delta = numpy.zeros((25, 14, 14, 6))
+
         print("w3.shape: ", self.w3.shape)
         for h in range(10):
             for w in range(10):
-                z2_delta = numpy.dot(self.w3, a3_delta[:,h,w,:].T)
-        #z2_delta = numpy.dot(a3_delta, self.w3.T)
+                z2_delta[:, h:h+5, w:w+5, :] += numpy.transpose(numpy.dot(self.w3, a3_delta[:, h, w, :].T), (3, 0, 1, 2))
         print("z2_delta.shape: ", z2_delta.shape)
 
-        z2_delta = numpy.transpose(z2_delta, (3, 0, 1, 2))
-        print("After transpose z2_delta.shape: ", z2_delta.shape)
+        #print("w3.shape: ", self.w3.shape)
+        #for h in range(10):
+        #    for w in range(10):
+        #        z2_delta = numpy.dot(self.w3, a3_delta[:,h,w,:].T)
+        #z2_delta = numpy.dot(a3_delta, self.w3.T)
+        #print("z2_delta.shape: ", z2_delta.shape)
+
+        #z2_delta = numpy.transpose(z2_delta, (3, 0, 1, 2))
+        #print("After transpose z2_delta.shape: ", z2_delta.shape)
+
+        print("a2.shape: ", self.a2.shape)
+        a2_delta = z2_delta * self.relu_deri(self.a2)
+        print("a2_delta.shape: ", a2_delta.shape)
+        a1_delta =  maxpool_deri(a2_delta,self.cachez2)
+
+
+        self.w7 -= lr_global* numpy.dot(self.a6.T,a7_delta )
+        self.b7 -=lr_global * numpy.sum(a7_delta, axis=0, keepdims=True)
+        self.w6 -= lr_global * numpy.dot(self.a5.T, a6_delta)
+        self.b6 -=lr_global * numpy.sum(a6_delta, axis=0, keepdims=True)
+        print("a5_shape",a5_delta.shape)
+
+        w5_temp=numpy.dot(self.a4.T, a5_delta)
+        w5_temp.resize(5,5,16,120)
+
+        self.w5 =self.w5- lr_global*w5_temp
+        self.b5 -= lr_global * numpy.sum(a5_delta, axis=0, keepdims=True)
+
+        a3_delta.resize(1,1,1,16)
+        self.b3 -= lr_global * numpy.sum(a3_delta, axis=0, keepdims=True)
+        a3_delta.resize(6,14,256,14)
+        w3_temp = numpy.dot(self.a2.T, a3_delta)
+        w3_temp.resize(5,5,6,16)
+
+
+        self.w3 =self.w3- lr_global * w3_temp
+
+        a1_delta.resize(1,1,1,6)
+        self.b1 -= lr_global * numpy.sum(a1_delta, axis=0, keepdims=True)
+        a1_delta.resize(28,28,256,6)
+        w1_temp = numpy.dot(self.x.T, a1_delta)
+        w1_temp.resize(5,5,1,6)
+        self.w1 = self.w1 - lr_global * w1_temp
+
+        print("w3.shape: ", self.w3.shape)
+        for h in range(10):
+            for w in range(10):
+                z2_delta[:, h:h + 10, w:w + 10, :] += numpy.transpose(numpy.dot(self.w3, a3_delta[:, h, w, :].T), (3, 0, 1, 2))
+        print("z2_delta.shape: ", z2_delta.shape)
+
+        #print("w3.shape: ", self.w3.shape)
+        #for h in range(10):
+        #    for w in range(10):
+        #        z2_delta = numpy.dot(self.w3, a3_delta[:,h,w,:].T)
+        #z2_delta = numpy.dot(a3_delta, self.w3.T)
+        #print("z2_delta.shape: ", z2_delta.shape)
+
+        #z2_delta = numpy.transpose(z2_delta, (3, 0, 1, 2))
+        #print("After transpose z2_delta.shape: ", z2_delta.shape)
 
         print("a2: ", self.a2.shape)
         a2_delta = z2_delta * self.relu_deri(self.a2)
