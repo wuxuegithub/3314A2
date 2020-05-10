@@ -175,23 +175,13 @@ class LeNet5(object):
                 z2_delta[:, h:h+5, w:w+5, :] += numpy.transpose(numpy.dot(self.w3, a3_delta[:, h, w, :].T), (3, 0, 1, 2))
         print("z2_delta.shape: ", z2_delta.shape)
 
-        #print("w3.shape: ", self.w3.shape)
-        #for h in range(10):
-        #    for w in range(10):
-        #        z2_delta = numpy.dot(self.w3, a3_delta[:,h,w,:].T)
-        #z2_delta = numpy.dot(a3_delta, self.w3.T)
-        #print("z2_delta.shape: ", z2_delta.shape)
-
-        #z2_delta = numpy.transpose(z2_delta, (3, 0, 1, 2))
-        #print("After transpose z2_delta.shape: ", z2_delta.shape)
-
         print("a2.shape: ", self.a2.shape)
         a2_delta = z2_delta * self.relu_deri(self.a2)
         print("a2_delta.shape: ", a2_delta.shape)
         a1_delta =  maxpool_deri(a2_delta,self.cachez2)
+        print("a1_delta.shape: ", a1_delta.shape)
 
-
-        self.w7 -= lr_global* numpy.dot(self.a6.T,a7_delta )
+        self.w7 -= lr_global* numpy.dot(self.a6.T,a7_delta)
         self.b7 -=lr_global * numpy.sum(a7_delta, axis=0, keepdims=True)
         self.w6 -= lr_global * numpy.dot(self.a5.T, a6_delta)
         self.b6 -=lr_global * numpy.sum(a6_delta, axis=0, keepdims=True)
