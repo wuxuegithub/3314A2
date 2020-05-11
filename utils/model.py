@@ -5,20 +5,14 @@ class LeNet5(object):
     def __init__(self):
         # YOUR IMPLEMETATION
         #define our layers
-        #I guess there is no weight for maxpooling layer!
         self.w1 = numpy.random.randn(5, 5, 1, 6) / 25
-        #self.w2 = numpy.random.randn(14, 14) / 196
         self.w3 = numpy.random.randn(5, 5, 6, 16) / 25
-        #self.w4 = numpy.random.randn(5, 5) / 25
-        # self.w5 = numpy.random.randn(5, 5, 16, 120) / 25
         self.w5 = numpy.random.randn(5, 5, 16, 120) / 25
         self.w6 = numpy.random.randn(120,84)
         self.w7 = numpy.random.randn(84, 10)
 
         self.b1 = numpy.zeros((1,1,1,self.w1.shape[-1]))
-        #self.b2 = numpy.zeros((1,1,1,self.w2.shape[-1]))
         self.b3 = numpy.zeros((1,1,1,self.w3.shape[-1]))
-        #self.b4 = numpy.zeros((1,1,1,self.w4.shape[-1]))
         self.b5 = numpy.zeros((1,1,1,self.w5.shape[-1]))
         self.b6 = numpy.zeros((1,self.w6.shape[-1]))
         self.b7 = numpy.zeros((1,self.w7.shape[-1]))
@@ -29,7 +23,7 @@ class LeNet5(object):
     def Forward_Propagation(self, input_image, input_label, mode):
         # YOUR IMPLEMETATION
         # Layer C1
-        self.x=input_image
+        self.x = input_image
         self.z1,self.cachez1 = convolution(input_image, self.w1, 6, self.b1)
 
         # print("z1", self.z1.shape)
@@ -73,7 +67,6 @@ class LeNet5(object):
 
         if mode == "train":
             logp = - numpy.log(numpy.argmax(self.a7, axis=1))
-            sumLogp = numpy.sum(logp)
             loss = numpy.sum(logp) / n_samples
             print("loss: ", loss)
             return loss
@@ -86,7 +79,6 @@ class LeNet5(object):
 
     def Back_Propagation(self, lr_global):
         # YOUR IMPLEMETATION
-        #print("input_labels: ",self.y.shape)
 
         weighted_y = self.w7[self.y,:]
         #print("weighted_label: " ,weighted_y.shape)
@@ -170,6 +162,8 @@ class LeNet5(object):
 
         self.w1 -= lr_global * a1_dW
         self.b1 -= lr_global * a1_db
+
+        print(self.w1)
 
 
     def softmax(self, Z):
