@@ -86,7 +86,6 @@ class LeNet5(object):
     def Back_Propagation(self, lr_global):
         # YOUR IMPLEMETATION
         print("input_labels: ",self.y.shape)
-        print(type(self.y))
 
         weighted_y = self.w7[self.y,:]
         print("weighted_label: " ,weighted_y.shape)
@@ -108,15 +107,14 @@ class LeNet5(object):
         a5_delta = z5_delta * self.relu_deri(self.a5)
         print("a5_delta.shape: ", a5_delta.shape)
 
-        z4_delta = z5_delta
+        z4_delta = numpy.zeros((25,5,5,16))
 
         print("w5.shape: ", self.w5.shape)
         for h in range(1):
             for w in range(1):
-                z4_delta = numpy.dot(self.w5, a5_delta[:, h, w, :].T)
+                z4_delta[:, h:h+5, w:w+5, :] += numpy.transpose(numpy.dot(self.w5, a5_delta[:, h, w, :].T), (3,0,1,2))
         print("z4_delta.shape: ", z4_delta.shape)
 
-        z4_delta = numpy.transpose(z4_delta, (3,0,1,2))
         print("After transpose z4_delta.shape: ", z4_delta.shape)
 
         a4_delta = z4_delta * self.relu_deri(self.a4)
@@ -128,7 +126,6 @@ class LeNet5(object):
         z4_delta = z5_delta
         # YOUR IMPLEMETATION
         print("input_labels: ",self.y.shape)
-        print(type(self.y))
 
         weighted_y = self.w7[self.y,:]
         print("weighted_label: " ,weighted_y.shape)
