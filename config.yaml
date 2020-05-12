@@ -5,7 +5,7 @@ DATA:
   train_label_path: dataset/MNIST/train-labels-idx1-ubyte
 
 TRAIN:
-  epoch: 5
+  epoch: 20
   batch_size: 256
 
 TEST:
