@@ -25,96 +25,103 @@ class LeNet5(object):
         # Layer C1
         self.x = input_image
         self.z1,self.cachez1 = convolution(input_image, self.w1, 6, self.b1)
-        print("z1",self.z1.shape)
+        #print("z1",self.z1.shape)
 
         # print("z1", self.z1.shape)
         # Layer S2 followed by ReLu activation
         self.z2,self.cachez2 = maxpooling(self.z1)
-        print("z2", self.z2.shape)
+        #print("z2", self.z2.shape)
         self.a2 = relu(self.z2)
-        print("a2", self.a2.shape)
         # print("a2", self.a2.shape)
-        # print("a2", self.a5.shape)
+        # print("a2", self.a2.shape)
         # Layer C3
         self.z3,self.cachez3 = convolution(self.a2, self.w3, 16, self.b3)
-        print("z3", self.z3.shape)
+        #print("z3", self.z3.shape)
         # print("z3", self.z3.shape)
         # Layer S4 followed by ReLu activation
         self.z4,self.cachez4 = maxpooling(self.z3)
-        print("z4", self.z4.shape)
+        #print("z4", self.z4.shape)
         self.a4 = relu(self.z4)
-        print("a4", self.a4.shape)
+        #print("a4", self.a4.shape)
         # print("a4", self.a4.shape)
         # Layer C5 followed by ReLu activation
         self.z5,self.cachez5 = convolution(self.a4, self.w5, 120, self.b5)
-        print("z5", self.z5.shape)
+        #print("z5", self.z5.shape)
         self.a5 = relu(self.z5)
 
         self.a5_flatten = self.a5[:, 0, 0, :]
-        print("a5", self.a5.shape)
+        #print("a5", self.a5.shape)
         # Layer F6  followed by ReLu activation
         self.z6 = fc(self.a5_flatten, self.w6, self.b6)
-        print("z6", self.z6.shape)
+        #print("z6", self.z6.shape)
         # self.a6.resize(84,1,1)
         self.a6 = relu(self.z6)
-        print("a6",self.a6.shape)
+        #print("a6",self.a6.shape)
         # Layer F7
         self.z7 = fc(self.a6, self.w7, self.b7)
-        print("a7",self.z7.shape)
+        #print("a7",self.z7.shape)
 
-        print("Before softmax: ", self.z7.shape)
+        #print("Before softmax: ", self.z7.shape)
         self.a7 = self.softmax( self.z7)
-        print("After softmax", self.a7.shape)
+        #print("After softmax", self.a7.shape)
 
         self.y = input_label
         # self.y.resize((256, 10))
         # print(self.y)
         n_samples = input_label.shape[0] #256
         #print("After softmax: ", self.out[:3])
-        self.class_pred = numpy.argmax( self.a7, axis=1)
-        #print(self.class_pred)
-        #print("predicted label",self.class_pred)
+
+        class_pred = numpy.argmax(self.a7, axis=1)
+        print(class_pred)
 
         if mode == "train":
-            logp=-numpy.log(self.a7[range(n_samples),input_label])
+            weighted_y = self.w7[self.y, :]
+            lossp = 0.5 * numpy.sum(numpy.power(self.a7 - weighted_y, 2), axis=1, keepdims=True)
+            loss = numpy.sum(numpy.squeeze(lossp))
+            #logp=-numpy.log(self.a7[range(n_samples),input_label])
             # logp = - numpy.log(numpy.argmax(self.a7, axis=1))
-            loss = numpy.sum(logp) / n_samples
+            #loss = numpy.sum(logp) / n_samples
             print("loss: ", loss)
             return loss
         else:
-            error01 = numpy.sum(input_label != self.class_pred)
+            #subtract_weight = (self.a7[:, numpy.newaxis, :] - numpy.array([self.w7] * self.a7.shape[0]))
+            #rbf_class = numpy.sum(numpy.power(subtract_weight, 2), axis=2)  # (n_m, 10)
+            #class_pred = numpy.argmin(rbf_class, axis=1)  # (n_m,)
+            class_pred = numpy.argmax(self.a7, axis=1)
+            # print(self.class_pred)
+            error01 = numpy.sum(input_label != class_pred)
             print("error01: ", error01)
-            return error01, self.class_pred
+            return error01, class_pred
 
         #raise NotImplementedError
 
     def Back_Propagation(self, lr_global):
         # YOUR IMPLEMETATION
 
-        # weighted_y = self.w7[self.y,:]
+        weighted_y = self.w7[self.y,:]
         #print("weighted_label: " ,weighted_y.shape)
-        weighted_y=onehot(self.y)
-        print("y",weighted_y.shape)
+        #weighted_y=onehot(self.y)
+        #print("y",weighted_y.shape)
 
         a7_delta= self.crossentropy(self.a7, weighted_y)
-        print("a7_delta.shape after crossentropy: ", a7_delta)
+        #print("a7_delta.shape after crossentropy: ", a7_delta)
 
         z6_delta=numpy.dot(a7_delta,self.w7.T)
-        print("z6_delta.shape: ", z6_delta.shape)
+        #print("z6_delta.shape: ", z6_delta.shape)
 
         a6_delta=z6_delta * self.relu_deri(self.a6)
-        print("a6_delta.shape: ",a6_delta.shape)
+        #print("a6_delta.shape: ",a6_delta.shape)
 
         z5_delta = numpy.dot(a6_delta, self.w6.T)
-        print("z5_delta.shape: ", z5_delta.shape)
+        #print("z5_delta.shape: ", z5_delta.shape)
 
         z5_delta = z5_delta[:, numpy.newaxis, numpy.newaxis, :]
-        print("After reverse flatten z5_delta.shape: ", z5_delta.shape)
+        #print("After reverse flatten z5_delta.shape: ", z5_delta.shape)
         a5_delta = z5_delta * self.relu_deri(self.a5)
-        print("a5_delta.shape: ", a5_delta.shape)
+        #print("a5_delta.shape: ", a5_delta.shape)
 
         z4_delta = numpy.zeros(self.a4.shape)
-        print("z4_delta",z4_delta.shape)
+        #print("z4_delta",z4_delta.shape)
         # print("w5.shape: ", self.w5.shape)
         a5_dW = numpy.zeros(self.w5.shape)
         a5_db = numpy.zeros((1, 1, 1, 120))
@@ -126,13 +133,13 @@ class LeNet5(object):
         #print("z4_delta.shape: ", z4_delta.shape)
 
         a4_delta = z4_delta * self.relu_deri(self.a4)
-        print("a4_delta.shape: ", a4_delta.shape)
+        #print("a4_delta.shape: ", a4_delta.shape)
 
         a3_delta = maxpool_deri(a4_delta, self.cachez4)
-        print("a3_delta.shape: ",a3_delta.shape)
+        #print("a3_delta.shape: ",a3_delta.shape)
 
         z2_delta = numpy.zeros(self.a2.shape)
-        print("z2_delta",z2_delta.shape)
+        #print("z2_delta",z2_delta.shape)
 
         a3_dW = numpy.zeros(self.w3.shape)
         a3_db = numpy.zeros((1, 1, 1, 16))
@@ -146,9 +153,9 @@ class LeNet5(object):
 
         #print("a2.shape: ", self.a2.shape)
         a2_delta = z2_delta * self.relu_deri(self.a2)
-        print("a2_delta.shape: ", a2_delta.shape)
+        #print("a2_delta.shape: ", a2_delta.shape)
         a1_delta =  maxpool_deri(a2_delta,self.cachez2)
-        print("a1_delta.shape: ", a1_delta.shape)
+        #print("a1_delta.shape: ", a1_delta.shape)
 
         z1_delta = numpy.zeros(self.x.shape)
 
@@ -160,7 +167,7 @@ class LeNet5(object):
                 z1_delta[:, h:h + 5, w:w + 5, :] += numpy.transpose(numpy.dot(self.w1, a1_delta[:, h, w, :].T),(3, 0, 1, 2))
                 a1_dW += numpy.dot(numpy.transpose(self.cachez1[:, h:h + 5, w:w + 5, :], (1, 2, 3, 0)), a1_delta[:, h, w, :])
                 a1_db += numpy.sum(a1_delta[:, h, w, :], axis=0, keepdims=True)
-        print("z1_delta.shape: ", z1_delta.shape)
+        #print("z1_delta.shape: ", z1_delta.shape)
 
         self.w7 -= lr_global * numpy.dot(self.a6.T,a7_delta)
         self.b7 -= lr_global * numpy.sum(a7_delta, axis=0, keepdims=True)
@@ -178,7 +185,7 @@ class LeNet5(object):
         self.w1 -= lr_global * a1_dW
         self.b1 -= lr_global * a1_db
 
-        print(self.w1)
+        #print("updated w1: ",self.w1)
 
 
     def softmax(self, Z):
@@ -205,15 +212,10 @@ def onehot (y):
     rows=numpy.arange(y.size)
     onehot[rows,y]=1
     # onehot=numpy.asarray(onehot)
-    print("one-hot",onehot)
+    #print("one-hot",onehot)
     return onehot
 
 def maxpooling(feature_map,size=2,stride=2):
-    #declare an empty array for storing the output
-    # pool=numpy.zeros(((feature_map.shape[0]-size+1)/stride),
-    #                  ((feature_map.shape[1]-size+1)/stride),
-    #                  (feature_map.shape[-1]))
-    #pool = numpy.zeros(((14,14,6)))
 
     batch, _, in_dim, depth = feature_map.shape
     # print("feature",feature_map.shape)
@@ -221,14 +223,17 @@ def maxpooling(feature_map,size=2,stride=2):
 
     pool = numpy.zeros((batch, out_dim, out_dim, depth))
 
-    for map_num in range(depth):
-        r2=0
-        for r in numpy.arange(0,out_dim-size-1,stride):
-            c2=0
-            for c in numpy.arange(0,out_dim-size-1,stride):
-                pool[:,r2,c2,map_num]=numpy.max([feature_map[:,r:r+size,c:c+size,map_num]])
-                c2=c2+1
-        r2=r2+1
+    for h in range(out_dim):
+        for w in range(out_dim):
+            pool[:, h, w, :] = numpy.max(feature_map[:, h * stride:h * stride + size, w * stride:w * stride + size, :], axis=(1, 2))
+    #for map_num in range(depth):
+    #    r2=0
+    #    for r in numpy.arange(0,out_dim-size-1,stride):
+    #        c2=0
+    #        for c in numpy.arange(0,out_dim-size-1,stride):
+    #            pool[:,r2,c2,map_num]=numpy.max([feature_map[:,r:r+size,c:c+size,map_num]])
+    #            c2=c2+1
+    #    r2=r2+1
     cache=feature_map
     # print("pool.shape:", pool.shape)
     return pool,cache
