@@ -138,7 +138,10 @@ def train(model, train_data, test_data, num_epoch, lr_global_list, batch_size):
         error01_train, _ = model.Forward_Propagation(train_data[0], train_data[1], 'test')
         error01_test, _ = model.Forward_Propagation(test_data[0], test_data[1], 'test')
         err_rate_list.append([error01_train/60000, error01_test/10000])
+        print("0/1 error of training set: ", error01_train, "/", len(train_data[1]))
         print("0/1 error of testing set: ", error01_test, "/", len(test_data[1]))
+        print("Train accuracy: ", 1-error01_train/len(train_data[1]))
+        print("Test accuracy: ", 1 - error01_test / len(test_data[1]))
         print("Time used: ", time.time() - ste, "sec")
         print("---------- epoch", epoch + 1, "end ------------")
         with open('model_data_' + str(epoch) + '.pkl', 'wb') as output:
