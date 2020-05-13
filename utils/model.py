@@ -3,7 +3,6 @@ import numpy
 
 class LeNet5(object):
     def __init__(self):
-
         self.w1 = numpy.random.randn(5, 5, 1, 6) / 25
         self.w3 = numpy.random.randn(5, 5, 6, 16) / 25
         self.w5 = numpy.random.randn(5, 5, 16, 120) / 25
@@ -19,7 +18,6 @@ class LeNet5(object):
         #raise NotImplementedError
 
     def Forward_Propagation(self, input_image, input_label, mode):
-
         self.x = input_image
         self.z1,self.cachez1 = convolution(input_image, self.w1, 6, self.b1)
 
@@ -42,13 +40,14 @@ class LeNet5(object):
         self.a7 = self.softmax( self.z7)
 
         self.y = input_label
+        self.weighted_y=onehot(self.y)
 
         if mode == "train":
             n_samples = input_label.shape[0]  # 256
-            logp = - numpy.log(self.a7.T + 1e-8) * self.y
+            logp = - self.weighted_y.T * numpy.log(self.a7.T + 1e-8)
             loss = numpy.sum(logp) / n_samples
             return loss
-        else:
+        elif mode == "test":
             class_pred = numpy.argmax(self.a7, axis=1)
             error01 = numpy.sum(input_label != class_pred)
             return error01, class_pred
@@ -56,8 +55,7 @@ class LeNet5(object):
 
     def Back_Propagation(self, lr_global):
 
-        weighted_y=onehot(self.y)
-        a7_delta= self.crossentropy(self.a7, weighted_y)
+        a7_delta= self.crossentropy(self.a7, self.weighted_y)
 
         z6_delta=numpy.dot(a7_delta,self.w7.T)
         a6_delta=z6_delta * self.relu_deri(self.a6)
@@ -138,7 +136,6 @@ def onehot (y):
     return onehot
 
 def maxpooling(feature_map,size=2,stride=2):
-
     batch, _, in_dim, depth = feature_map.shape
     out_dim = int((in_dim - size) / stride) + 1
 
@@ -151,7 +148,6 @@ def maxpooling(feature_map,size=2,stride=2):
     return pool,cache
 
 def maxpool_deri(feature_map,cache):
-
     x = cache
     batch,HH,WW,depth=feature_map.shape
 
@@ -173,9 +169,8 @@ def relu(feature_map):
 def fc(feature_map, weight, bias):
     return numpy.dot(feature_map, weight) + bias
 
-def convolution(input_image, filt, no_filter, bias, filter_size=5, stride=1):
-
-    batch, input_dim, _, depth = input_image.shape
+def convolution(feature_map, filt, no_filter, bias, filter_size=5, stride=1):
+    batch, input_dim, _, depth = feature_map.shape
 
     out_dim = int((input_dim - filter_size) / stride) + 1
     convout = numpy.zeros((batch,out_dim, out_dim, no_filter))
@@ -184,8 +179,8 @@ def convolution(input_image, filt, no_filter, bias, filter_size=5, stride=1):
     while height + filter_size <= input_dim:
         width = 0
         while width + filter_size <= input_dim:
-            convout[:, height ,width, :] = numpy.tensordot((input_image[:, height:height + filter_size, width:width + filter_size,:]), filt, axes=([1,2,3],[0,1,2])) + bias
+            convout[:, height ,width, :] = numpy.tensordot((feature_map[:, height:height + filter_size, width:width + filter_size,:]), filt, axes=([1,2,3],[0,1,2])) + bias
             width += stride
         height += stride
-    cache = input_image
+    cache = feature_map
     return convout, cache
